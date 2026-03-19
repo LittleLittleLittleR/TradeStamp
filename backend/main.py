@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException, Path
+from typing import Literal
+
+from fastapi import FastAPI, HTTPException, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
@@ -32,14 +34,20 @@ def health_check():
 )
 def get_stock_chart(
     symbol: str = Path(..., description="Stock ticker symbol (e.g. AAPL, MSFT, TSLA)"),
+    duration: Literal["1d", "5d", "1mo", "3mo", "1y"] = Query(
+        default="1y",
+        description="Duration of the chart data. One of: 1d (1 day), 5d (5 days), "
+                    "1mo (1 month), 3mo (3 months), 1y (1 year).",
+    ),
 ):
-    """Return a PNG chart for the requested stock symbol.
+    """Return a PNG chart for the requested stock symbol and duration.
 
-    The chart contains a 1-year closing-price graph and a table of the last
-    10 trading days. The generated file is also saved to ``backend/charts/``.
+    The chart contains a closing-price graph and a table of the last
+    10 data points for the selected duration. The generated file is also
+    saved to ``backend/charts/``.
     """
     try:
-        image_bytes = generate_stock_chart(symbol)
+        image_bytes = generate_stock_chart(symbol, duration)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
