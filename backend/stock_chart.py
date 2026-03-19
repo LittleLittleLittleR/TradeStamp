@@ -74,6 +74,14 @@ def generate_stock_chart(symbol: str, duration: str = "1y") -> bytes:
     ax_chart.grid(True, alpha=0.3)
     ax_chart.tick_params(axis="x", rotation=45)
 
+    # Set y-axis limits to the actual price range with a 5% buffer based on the
+    # lowest price so the line fills the chart without wasted whitespace.
+    # Example: lowest=100, highest=200 → buffer=5 → y-axis 95–205.
+    price_min = float(hist["Close"].min())
+    price_max = float(hist["Close"].max())
+    buffer = price_min * 0.05
+    ax_chart.set_ylim(price_min - buffer, price_max + buffer)
+
     # --- Recent data table (last 10 data points) ---
     ax_table = fig.add_subplot(gs[1])
     ax_table.axis("off")
